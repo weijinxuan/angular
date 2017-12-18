@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>用户注册牛刀小试</title>
+  <style type="text/css">
+    tr td:first-child {
+        text-align: right;
+
+    }
+    tr:last-of-type td {
+        text-align: center;
+
+    }
+    p {
+        color: red;
+
+    }
+  </style>
+  <script type="text/javascript" src="./libs/angular.js"></script>
+</head>
+<body>
+    <div ng-app="klapp" ng-controller="klctrl">
+        <table>
+            <thead>
+                <tr>
+                    <td colspan="2">
+                        <select ng-model="type">
+                            <option>学生端</option>
+                            <option>教师端</option>
+                        </select>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>用户名：</td>
+                    <td><input type="text" ng-model="username"></td>
+                </tr>
+                <tr>
+                    <td>密码：</td>
+                    <td><input type="text" ng-model="pwd"></td>
+                </tr>
+                <tr>
+                    <td>确认密码：</td>
+                    <td><input type="text" ng-model="refpwd"></td>
+                </tr>
+                <tr>
+                    <td>注册协议：</td>
+                    <td><input type="checkbox" ng-model="isagree"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="button" value="点我注册" ng-click="register()">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p ng-bind="tlmsg"></p>
+    </div>
+</body>
+<script type="text/javascript">
+    var app = angular.module('klapp', [])
+    // Controller 开始
+    app.controller('klctrl', ['$scope', function($scope){
+        $scope.username = ''
+        $scope.pwd = ''
+        $scope.refpwd = ''
+        $scope.isagree = ''
+        $scope.type = '学生端'
+        $scope.tlmsg = ''
+        $scope.register = function () {
+            // 判断用户名
+            if($scope.username.length < 6){
+                // alert('用户名太短!')
+                $scope.tlmsg='用户名太短！'
+                return
+            }
+            if($scope.pwd.length < 6){
+                $scope.tlmsg='密码太短,不安全!'
+                return
+            }
+            if($scope.pwd !== $scope.refpwd){
+                $scope.tlmsg='两次输入的密码不一致，请重新输入!'
+                return 
+                
+            }
+            if(!$scope.isagree){
+                $scope.tlmsg='请同意注册条款'
+                return 
+            }
+
+            var u = new User({
+                username: $scope.username,
+                pwd: $scope.pwd,
+                type: $scope.type
+            })
+            // 我们希望得到一个返回值表明是否注册成功!
+            var result = u.save()
+            console.log(result)
+            if (result) {
+                $scope.tlmsg = '注册成功!'
+            } else {
+                $scope.tlmsg = '注册失败！不能重复注册'
+            }
+        }
+    }])
+    // Controller 结束
+
+
+    // Model开始
+    // JSON.parse用于从一个字符串中解析出json对象
+    // JSON.stringify()用于从一个对象解析出字符串
+    
+    function User (obj) {
+        this.name = obj.username
+        this.pwd = obj.pwd
+        this.type = obj.type
+    }
+    
+    User.prototype = {
+        save: function () {
+            var str = localStorage.getItem('myusers') || '[]'
+            var arr = JSON.parse(str)
+            // 如果存在则 该用户名注册过
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].name === this.name ) {
+                    return 
+                }
+            }
+
+            // 否则没有注册过 就要保存数据
+            arr.push({
+                name: this.name,
+                pwd: this.pwd,
+                type: this.type
+            })
+            localStorage.setItem('myusers', JSON.stringify(arr))
+            return true
+        }
+    }
+
+</script>
+</html>
